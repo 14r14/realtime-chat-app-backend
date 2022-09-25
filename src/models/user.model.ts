@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 
 const Schema = mongoose.Schema;
 
 export interface UserStructure {
+  _id: ObjectId;
   username: string;
   email: string;
   password: string;

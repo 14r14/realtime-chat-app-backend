@@ -9,12 +9,25 @@ import {
   ServerToClientError,
   AuthSuccessfullToClient,
 } from "../interfaces/auth.interface";
-import { generateHashedPassword } from "../helpers/passHashMethods";
+import {
+  checkPasswordHash,
+  generateHashedPassword,
+} from "../helpers/passHashMethods";
 import { generateSecretKey } from "../helpers/jwtTokenMethods";
 import { validationResult } from "express-validator";
 
 const postLoginController = async (req: Request, res: Response) => {
   const { email, password } = <ClientLoginData>req.body;
+
+  const validationErrors = validationResult(req);
+
+  if (!validationErrors.isEmpty()) {
+    return res.json(<ServerToClientError>{
+      success: false,
+      code: "validationerror",
+      msg: validationErrors.array()[0],
+    });
+  }
 
   const existingUserCheck: UserStructure | null | undefined =
     await User.findOne({
@@ -25,6 +38,31 @@ const postLoginController = async (req: Request, res: Response) => {
     return res.json(<ServerToClientError>{
       success: false,
       code: "usernotfound",
+    });
+
+  const isPasswordCorrect = await checkPasswordHash(
+    password,
+    existingUserCheck.password
+  );
+
+  if (!isPasswordCorrect)
+    return res.json(<ServerToClientError>{
+      success: false,
+      code: "invdata",
+    });
+
+  const accessToken = await generateSecretKey(existingUserCheck._id.toString());
+
+  return res
+    .cookie("accessToken", accessToken, {
+      maxAge: 1000 * 60 * 60,
+      signed: true,
+      httpOnly: true,
+    })
+    .json(<AuthSuccessfullToClient>{
+      success: true,
+      username: existingUserCheck.username,
+      active: existingUserCheck.active,
     });
 };
 
