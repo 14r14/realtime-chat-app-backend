@@ -1,8 +1,16 @@
+import { MessageStructure } from "../models/message.model";
+
 interface Message {
-  data: string;
-  username: string;
-  time: Date;
-  room: string;
+  message: string;
+  userToken: string;
+  // time: Date;
+  // room: string;
+}
+
+interface MessageSent {
+  key: string;
+  sent: boolean;
+  message: MessageStructure;
 }
 
 export interface ServerToClientEvents {
@@ -10,6 +18,7 @@ export interface ServerToClientEvents {
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
   connected: (res: string) => void;
+  sent: (message: MessageSent) => void;
 }
 
 export interface ClientToServerEvents {

@@ -15,6 +15,9 @@ import {
 } from "./interfaces/socketio.interface";
 
 import authRoutes = require("./routes/auth.routes");
+import messageRoutes = require("./routes/message.routes");
+
+import { newMessage } from "./socketio/message";
 
 dotenv.config();
 
@@ -31,22 +34,22 @@ const io = new socketIO.Server<
 >(server, {
   cors: {
     allowedHeaders: ["Content-Type", "Authorization"],
-    origin: "http://localhost:3001",
+    origin: "http://localhost:3000",
     methods: ["OPTIONS", "POST", "GET", "DELETE", "PUT"],
   },
-});
-
-io.on("connection", (socket) => {
-  socket.emit("connected", "Connected to server!");
-  socket.on("message", (data) => {
-    console.log(data);
-  });
-  console.log("Connection receieved.");
 });
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+io.on("connection", (socket) => {
+  socket.on("message", (msg) => {
+    newMessage(msg).then((message) => {
+      socket.emit("sent", message)
+    });
+  });
+})
 
 app.use(
   cors({
@@ -58,6 +61,7 @@ app.use(
 );
 
 app.use("/auth", authRoutes);
+app.use("/msg", messageRoutes);
 
 mongoose.connect("mongodb://localhost:27017/realtime-chat-app").then(() => {
   server.listen(port, () => {

@@ -54,13 +54,9 @@ const postLoginController = async (req: Request, res: Response) => {
   const accessToken = await generateSecretKey(existingUserCheck._id.toString());
 
   return res
-    .cookie("accessToken", accessToken, {
-      maxAge: 1000 * 60 * 60,
-      signed: true,
-      httpOnly: true,
-    })
     .json(<AuthSuccessfullToClient>{
       success: true,
+      token: accessToken,
       username: existingUserCheck.username,
       active: existingUserCheck.active,
     });
@@ -103,13 +99,9 @@ const postRegisterController = async (req: Request, res: Response) => {
   const accessToken = await generateSecretKey(newlyCreatedUser._id.toString());
 
   return res
-    .cookie("accessToken", accessToken, {
-      maxAge: 1000 * 60 * 60,
-      signed: true,
-      httpOnly: true,
-    })
     .json(<AuthSuccessfullToClient>{
       success: true,
+      token: accessToken,
       username: newlyCreatedUser.username,
       active: newlyCreatedUser.active,
     });
